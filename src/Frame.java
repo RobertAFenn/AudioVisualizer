@@ -1,17 +1,36 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Insets;
 import java.awt.RadialGradientPaint;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -19,21 +38,79 @@ public class Frame extends JFrame {
     private int height, width;
     private List<Particle> particles;
     private Random r = new Random();
+    private JPanel starPanel;
+    private String topTextString = "";
 
     Frame(int w, int h) {
         // Initiate Frame
+        Image iconImage = Toolkit.getDefaultToolkit().getImage("icons8-music-100.png");
+        setTitle("Audio Viewer");
+        setIconImage(iconImage);
         setWidth(w);
         setHeight(h);
         setSize(w, h);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
         setResizable(false);
+        addParticles();
 
-        JPanel interactionPanel = new JPanel();
-        add(interactionPanel);
-        // This will be used later on, but instantiated now
+        // Initialize overlayPanel, for adding interactions and visualizations
+        JPanel overlayPanel = new JPanel();
+        starPanel.add(overlayPanel);
+        overlayPanel.setOpaque(false);
 
-        JPanel starPanel = new JPanel() {
+        // Load in custom font
+        Font customFont = null;
+        try {
+            // Load the TTF font file
+            InputStream is = new FileInputStream(new File("VCR_OSD_MONO_1.001.ttf"));
+            customFont = Font.createFont(Font.TRUETYPE_FONT, is);
+
+            // Set the font size and style
+            customFont = customFont.deriveFont(Font.PLAIN, 35);
+
+            // Test the font
+            System.out.println("Font name: " + customFont.getFontName());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Use the GridBagLayout
+        overlayPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(20, 0, 20, 0); // Add vertical spacing between elements
+
+        topTextString = "Audio Visualizer";
+        JLabel topText = new JLabel(topTextString);
+        topText.setFont(customFont);
+        topText.setForeground(Color.RED);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.NORTH;
+        overlayPanel.add(topText, gbc); // Add topText to the top middle with spacing
+
+        FrameMenuLogic buttonLogic = new FrameMenuLogic(overlayPanel, topText, customFont);
+
+        // Add VisualizerButton to the center middle with spacing
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
+        overlayPanel.add(buttonLogic.VisualizerButton, gbc);
+
+        // Add empty space between buttons
+        gbc.gridy = 2;
+        gbc.weighty = 1.0; // Add vertical space
+        overlayPanel.add(Box.createVerticalStrut(20), gbc);
+
+        // Add importButton to the bottom middle with spacing
+        gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.SOUTH;
+        overlayPanel.add(buttonLogic.importButton, gbc);
+
+    }
+
+    private void addParticles() {
+        starPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -86,14 +163,6 @@ public class Frame extends JFrame {
             }
         });
         timer.start();
-
-        // Now we will focus on the actual project
-        JTextField topField = new JTextField();
-        topField.setEditable(false);
-        topField.setText("Hello, world!");
-        topField.setBackground(Color.WHITE);
-        interactionPanel.add(topField);
-
     }
 
     // Got Bored, this has nothing to do with the project itself
