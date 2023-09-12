@@ -16,6 +16,8 @@ public class FrameMenuLogic implements ActionListener {
     private JPanel currentPanel;
     private JLabel topText;
     private Font customFont;
+    private JLabel alertLabel;
+
     private GridBagConstraints gbc;
 
     FrameMenuLogic(JPanel panel) {
@@ -79,8 +81,10 @@ public class FrameMenuLogic implements ActionListener {
                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
                     for (Path file : stream) {
                         if (Files.isRegularFile(file)) {
+
                             System.out.println(file.getFileName());
                             JButton mySongButton = new JButton(file.getFileName().toString());
+
                             mySongButton.addActionListener(this);
 
                         }
@@ -88,6 +92,7 @@ public class FrameMenuLogic implements ActionListener {
                 } catch (IOException err) {
                     err.printStackTrace();
                 }
+                initializeButtons();
 
                 break;
 
@@ -97,28 +102,71 @@ public class FrameMenuLogic implements ActionListener {
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 int result = fileChooser.showOpenDialog(null);
 
+                // Remove existing alert labels before adding a new one
+                try {
+                    if (alertLabel != null) {
+                        currentPanel.remove(alertLabel);
+                        currentPanel.revalidate();
+                        currentPanel.repaint();
+                    } else {
+                        alertLabel = new JLabel();
+                        // Assuming you have a Font object called customFont
+                        Font newFont = customFont.deriveFont(15.0f); // Set the font size (16.0f in this example)
+                        alertLabel.setFont(newFont); // Set the new font for your component
+
+                    }
+                } catch (Exception exception) {
+                    // TODO: handle exception
+                }
+
                 if (result == JFileChooser.APPROVE_OPTION) {
                     // The user selected a file
                     File selectedFile = fileChooser.getSelectedFile();
                     String filePath = selectedFile.getAbsolutePath();
                     System.out.println("Selected File: " + filePath);
-
                     // Specify the destination directory
                     Path destinationDirectory = Paths.get("music"); // Adjust the destination directory as needed
+                    gbc.insets = new Insets(0, 0, 0, 0); // Set the insets
 
                     try {
                         // Move the file to the destination directory
                         Files.move(selectedFile.toPath(), destinationDirectory.resolve(selectedFile.getName()),
                                 StandardCopyOption.REPLACE_EXISTING);
                         System.out.println("File moved successfully.");
-                        importButton.setForeground(Color.GREEN);
+                        alertLabel.setText("Success! " + selectedFile.getName() + " has been added for selection!");
+                        alertLabel.setForeground(Color.GREEN);
+                        gbc.gridy = 4; // Set the grid position to 3
+                        gbc.gridx = 0; // Set the grid column to 0
+                        gbc.anchor = GridBagConstraints.CENTER; // Set the anchor to the center
+                        currentPanel.add(alertLabel, gbc);
+                        currentPanel.revalidate(); // Revalidate the panel to ensure the changes are applied
+                        currentPanel.repaint();
+
                     } catch (IOException err) {
                         System.err.println("Error moving file: " + err.getMessage());
-                        importButton.setForeground(Color.RED);
+                        alertLabel.setText("ERROR moving file");
+                        alertLabel.setForeground(Color.RED);
+                        gbc.gridy = 4; // Set the grid position to 3
+                        gbc.gridx = 0; // Set the grid column to 0
+                        gbc.anchor = GridBagConstraints.CENTER; // Set the anchor to the center
+                        currentPanel.add(alertLabel, gbc);
+                        currentPanel.revalidate(); // Revalidate the panel to ensure the changes are applied
+                        currentPanel.repaint();
                     }
                 } else if (result == JFileChooser.CANCEL_OPTION) {
                     System.out.println("File selection canceled");
+                    alertLabel.setText("Selection canceled");
+                    alertLabel.setForeground(Color.GRAY);
+                    gbc.gridy = 4; // Set the grid position to 3
+                    gbc.gridx = 0; // Set the grid column to 0
+                    gbc.anchor = GridBagConstraints.CENTER; // Set the anchor to the center
+                    currentPanel.add(alertLabel, gbc);
+                    currentPanel.revalidate(); // Revalidate the panel to ensure the changes are applied
+                    currentPanel.repaint();
                 }
+
+                gbc.insets = new Insets(10, 0, 10, 0); // Set the insets
+
                 break;
 
             default:
@@ -164,11 +212,43 @@ public class FrameMenuLogic implements ActionListener {
         for (JButton button : Arrays.asList(menuButton, importButton, visualizerButton)) {
             button.setPreferredSize(new Dimension(200, 50));
             button.setForeground(Color.WHITE);
-            button.setBackground(new Color(255, 255, 255, 100));
+            button.setBackground(new Color(0, 0, 0, 0));
             button.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             Font newFont = customFont.deriveFont(16.0f);
             button.setFont(newFont);
+
+            button.addMouseListener(new MouseAdapter() {
+
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    button.setBackground(new Color(0, 0, 0, 0));
+                    button.setForeground(Color.GRAY);
+
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    // Restore button appearance on mouse exit
+                    button.setBackground(new Color(0, 0, 0, 0));
+                    button.setForeground(Color.WHITE);
+                }
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    // Change button appearance on mouse press
+                    button.setBackground(new Color(0, 0, 0, 0));
+                    button.setForeground(Color.WHITE);
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    // Restore button appearance on mouse release
+                    button.setBackground(new Color(0, 0, 0, 0));
+                    button.setForeground(Color.GRAY);
+                }
+            });
         }
+
     }
 
 }

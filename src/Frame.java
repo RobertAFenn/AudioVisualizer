@@ -39,7 +39,7 @@ public class Frame extends JFrame {
     private List<Particle> particles;
     private Random r = new Random();
     private JPanel starPanel;
-    private String topTextString = "";
+    private int particleCount = 0;
 
     Frame(int w, int h) {
         // Initiate Frame
@@ -52,6 +52,7 @@ public class Frame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
         setResizable(false);
+        setParticleCount(3000);
         addParticles();
 
         // Initialize overlayPanel, for adding interactions and visualizations
@@ -59,11 +60,10 @@ public class Frame extends JFrame {
         starPanel.add(overlayPanel);
         overlayPanel.setOpaque(false);
 
-        // TODO Move this stuff to FrameMenuLogic
-
-        FrameMenuLogic frameLogic = new FrameMenuLogic(overlayPanel);
+       new FrameMenuLogic(overlayPanel);
 
     }
+
 
     public void justGiveMeTheParticles(int w, int h) {
         Image iconImage = Toolkit.getDefaultToolkit().getImage("icons8-music-100.png");
@@ -95,7 +95,7 @@ public class Frame extends JFrame {
         add(starPanel);
         starPanel.setBackground(Color.BLACK);
 
-        int particleCount = 300;
+        particleCount = getParticleCount();
         particles = new ArrayList<>(particleCount);
         for (int i = 0; i < particleCount; i++) {
             particles.add(createParticle());
@@ -148,6 +148,14 @@ public class Frame extends JFrame {
 
         });
         timer.start();
+    }
+
+    public void setParticleCount(int p) {
+        particleCount = p;
+    }
+
+    public int getParticleCount() {
+        return particleCount;
     }
 
     // Got Bored, this has nothing to do with the project itself
