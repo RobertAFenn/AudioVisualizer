@@ -59,54 +59,27 @@ public class Frame extends JFrame {
         starPanel.add(overlayPanel);
         overlayPanel.setOpaque(false);
 
-        // Load in custom font
-        Font customFont = null;
-        try {
-            // Load the TTF font file
-            InputStream is = new FileInputStream(new File("VCR_OSD_MONO_1.001.ttf"));
-            customFont = Font.createFont(Font.TRUETYPE_FONT, is);
+        // TODO Move this stuff to FrameMenuLogic
 
-            // Set the font size and style
-            customFont = customFont.deriveFont(Font.PLAIN, 35);
+        FrameMenuLogic frameLogic = new FrameMenuLogic(overlayPanel);
 
-            // Test the font
-            System.out.println("Font name: " + customFont.getFontName());
+    }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void justGiveMeTheParticles(int w, int h) {
+        Image iconImage = Toolkit.getDefaultToolkit().getImage("icons8-music-100.png");
+        setTitle("Audio Viewer");
+        setIconImage(iconImage);
+        setWidth(w);
+        setHeight(h);
+        setSize(w, h);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
+        setResizable(false);
+        addParticles();
 
-        // Use the GridBagLayout
-        overlayPanel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(20, 0, 20, 0); // Add vertical spacing between elements
-
-        topTextString = "Audio Visualizer";
-        JLabel topText = new JLabel(topTextString);
-        topText.setFont(customFont);
-        topText.setForeground(Color.RED);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.NORTH;
-        overlayPanel.add(topText, gbc); // Add topText to the top middle with spacing
-
-        FrameMenuLogic buttonLogic = new FrameMenuLogic(overlayPanel, topText, customFont);
-
-        // Add VisualizerButton to the center middle with spacing
-        gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.CENTER;
-        overlayPanel.add(buttonLogic.VisualizerButton, gbc);
-
-        // Add empty space between buttons
-        gbc.gridy = 2;
-        gbc.weighty = 1.0; // Add vertical space
-        overlayPanel.add(Box.createVerticalStrut(20), gbc);
-
-        // Add importButton to the bottom middle with spacing
-        gbc.gridy = 3;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        overlayPanel.add(buttonLogic.importButton, gbc);
-
+        JPanel overlayPanel = new JPanel();
+        starPanel.add(overlayPanel);
+        overlayPanel.setOpaque(false);
     }
 
     private void addParticles() {
@@ -122,13 +95,15 @@ public class Frame extends JFrame {
         add(starPanel);
         starPanel.setBackground(Color.BLACK);
 
-        int particleCount = 2500;
+        int particleCount = 300;
         particles = new ArrayList<>(particleCount);
         for (int i = 0; i < particleCount; i++) {
             particles.add(createParticle());
         }
+        // tradeoff between drawing new frames and how many particles a computer can
+        // handle
 
-        int delay = 15;
+        int delay = 30;
         Timer timer = new Timer(delay, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -141,6 +116,7 @@ public class Frame extends JFrame {
                         int newX = r.nextInt(getWidth());
                         particle.setPosX(newX);
                         particle.setPosY(newY);
+
                         // Reset transparency based on the condition
                         if (r.nextInt(10) == 0) {
                             particle.setTransparency(255); // Fully opaque (white)
@@ -153,14 +129,23 @@ public class Frame extends JFrame {
                         int interpolatedY = lerp(currentY, newY, 1.0 / lerpFactor);
                         particle.setPosY(interpolatedY);
                     }
+
                     // Decrease transparency as particles go up
                     int currentTransparency = particle.getTransparency();
                     if (currentTransparency > 0) {
-                        particle.setTransparency(currentTransparency - 1);
+                        if (currentTransparency == 255) {
+                            // If the particle is fully opaque, set to a random value between 200 and 255
+                            particle.setTransparency(r.nextInt(56) + 200); // Vary between 200 and 255 (more
+                                                                           // degradation)
+                        } else {
+                            // If the particle is already somewhat transparent, decrement normally
+                            particle.setTransparency(currentTransparency - 1);
+                        }
                     }
                 }
                 starPanel.repaint();
             }
+
         });
         timer.start();
     }

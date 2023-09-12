@@ -1,110 +1,105 @@
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.io.InputStream;
+import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 public class FrameMenuLogic implements ActionListener {
 
-    public JButton menuButton, importButton, VisualizerButton;
-    JPanel currentPanel;
-    JLabel topText;
-    Font customFont;
+    public JButton menuButton, importButton, visualizerButton;
+    private JPanel currentPanel;
+    private JLabel topText;
+    private Font customFont;
+    private GridBagConstraints gbc;
 
-    // mostly using this constructor as a means to grab elements of the menu, could
-    // this be more elegant? yes but its fine
-    FrameMenuLogic(JPanel panel, JLabel topText, Font customFont) {
+    FrameMenuLogic(JPanel panel) {
         currentPanel = panel;
-        this.topText = topText;
         menuButton = new JButton("Return To Menu");
-        VisualizerButton = new JButton("Select Items");
+        visualizerButton = new JButton("Select Items");
         importButton = new JButton("Import New Files");
-        this.customFont = customFont;
-        // Add this FrameMenuLogic instance as the ActionListener for the buttons
         menuButton.addActionListener(this);
         importButton.addActionListener(this);
-        VisualizerButton.addActionListener(this);
+        visualizerButton.addActionListener(this);
 
-        // Add mouse listeners to handle hover and click effects
-        addMouseListeners(menuButton);
-        addMouseListeners(importButton);
-        addMouseListeners(VisualizerButton);
-        InitializeButtons(customFont);
+        loadCustomFont();
+
+        currentPanel.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+
+        initializeMenu();
+        initializeButtons();
     }
 
-    public JButton[] toArray() {
-        JButton[] menuButtons = getAllButtons(currentPanel);
-
-        // Add other buttons to the menuButtons array as needed
-        JButton[] additionalButtons = {
-                menuButton, importButton, VisualizerButton
-        };
-
-        // Combine the menuButtons and additionalButtons arrays
-        JButton[] buttons = new JButton[menuButtons.length + additionalButtons.length];
-
-        System.arraycopy(menuButtons, 0, buttons, 0, menuButtons.length);
-        System.arraycopy(additionalButtons, 0, buttons, menuButtons.length, additionalButtons.length);
-
-        return buttons;
+    private void loadCustomFont() {
+        try {
+            InputStream is = new FileInputStream(new File("VCR_OSD_MONO_1.001.ttf"));
+            customFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(Font.PLAIN, 35);
+            System.out.println("Font name: " + customFont.getFontName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private JButton[] getAllButtons(Container container) {
+    private List<Component> getAllComponents(Container container) {
         Component[] components = container.getComponents();
-        List<JButton> buttonList = new ArrayList<>();
+        List<Component> componentList = new ArrayList<>();
 
         for (Component component : components) {
-            if (component instanceof JButton) {
-                buttonList.add((JButton) component);
-            }
+            componentList.add(component);
         }
 
-        JButton[] buttons = new JButton[buttonList.size()];
-        buttonList.toArray(buttons);
-
-        return buttons;
+        return componentList;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         JButton myButton = (JButton) e.getSource();
+        String buttonText = myButton.getText();
 
-        switch (myButton.getText()) {
+        switch (buttonText) {
             case "Return To Menu":
-                // Handle menuButton click
-                System.out.println("Menu button clicked");
+                removeAllButTopLabel();
+                initializeMenu();
+                break;
+
+            case "Select Items":
+                removeAllButTopLabel();
+                gbc.insets = new Insets(-20, 0, 0, 0);
+                gbc.gridy = 1;
+                gbc.anchor = GridBagConstraints.CENTER;
+                currentPanel.add(menuButton, gbc);
+
+                Path directory = Path.of("music");
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+                    for (Path file : stream) {
+                        if (Files.isRegularFile(file)) {
+                            System.out.println(file.getFileName());
+                            JButton mySongButton = new JButton(file.getFileName().toString());
+                            mySongButton.addActionListener(this);
+
+                        }
+                    }
+                } catch (IOException err) {
+                    err.printStackTrace();
+                }
 
                 break;
+
             case "Import New Files":
-                // Handle importButton click
                 System.out.println("Import button clicked");
-                // ! Bring up that file thing and add it to the music folder
-                JFileChooser JFC = new JFileChooser();
-                JFC.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                int result = JFC.showOpenDialog(null);
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                int result = fileChooser.showOpenDialog(null);
 
                 if (result == JFileChooser.APPROVE_OPTION) {
                     // The user selected a file
-                    File selectedFile = JFC.getSelectedFile();
+                    File selectedFile = fileChooser.getSelectedFile();
                     String filePath = selectedFile.getAbsolutePath();
                     System.out.println("Selected File: " + filePath);
 
@@ -116,84 +111,64 @@ public class FrameMenuLogic implements ActionListener {
                         Files.move(selectedFile.toPath(), destinationDirectory.resolve(selectedFile.getName()),
                                 StandardCopyOption.REPLACE_EXISTING);
                         System.out.println("File moved successfully.");
+                        importButton.setForeground(Color.GREEN);
                     } catch (IOException err) {
                         System.err.println("Error moving file: " + err.getMessage());
+                        importButton.setForeground(Color.RED);
                     }
                 } else if (result == JFileChooser.CANCEL_OPTION) {
-                    // The user canceled the file chooser dialog
                     System.out.println("File selection canceled");
                 }
-
                 break;
 
-            case "Select Items":
-                // Handle VisualizerButton click
-                System.out.println("Visualizer button clicked");
-                removeAllButTopLabel();
-
-                break;
             default:
-                // Handle other buttons or cases here
                 break;
         }
     }
 
+    private void initializeMenu() {
+        gbc.insets = new Insets(20, 0, 20, 0);
+        topText = new JLabel("Audio Visualizer");
+        topText.setFont(customFont);
+        topText.setForeground(Color.RED);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.NORTH;
+        currentPanel.add(topText, gbc);
+
+        addComponentWithConstraints(visualizerButton, 1, GridBagConstraints.CENTER);
+        addComponentWithConstraints(Box.createVerticalStrut(20), 2, GridBagConstraints.CENTER);
+        addComponentWithConstraints(importButton, 3, GridBagConstraints.SOUTH);
+    }
+
     private void removeAllButTopLabel() {
-        Component[] components = currentPanel.getComponents();
+        List<Component> components = getAllComponents(currentPanel);
 
         for (Component component : components) {
-            if (component instanceof JLabel) {
-                JLabel label = (JLabel) component;
-                System.out.println(label.getText());
-                if (label != topText) {
-                    currentPanel.remove(label);
-                }
-            } else {
+            if (component != topText) {
                 currentPanel.remove(component);
             }
         }
 
-        currentPanel.revalidate(); // Refresh the panel to reflect the changes
-        currentPanel.repaint(); // Repaint the panel
+        currentPanel.revalidate();
+        currentPanel.repaint();
     }
 
-    private void addMouseListeners(JButton button) { // I wish i had CSS
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                // Handle hover effect (when mouse enters the button)
-                button.setBackground(new Color(255, 200, 200, 100)); // Change to a different color
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                // Handle release effect (when mouse exits the button)
-                button.setBackground(new Color(255, 255, 255, 100)); // Restore the original background color
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                // Handle click effect (when mouse is pressed on the button)
-                button.setBackground(new Color(255, 0, 0, 100)); // Change to a different color
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                // Handle release effect (when mouse is released after a click)
-                button.setBackground(new Color(255, 0, 0, 100)); // Restore the click background color
-            }
-        });
+    private void addComponentWithConstraints(Component component, int gridY, int anchor) {
+        gbc.gridy = gridY;
+        gbc.anchor = anchor;
+        currentPanel.add(component, gbc);
     }
 
-    private void InitializeButtons(Font customFont) {
-        for (JButton buttons : toArray()) {
-            buttons.setPreferredSize(new Dimension(200, 50));
-            buttons.setForeground(Color.WHITE);
-            buttons.setBackground(new Color(255, 255, 255, 100));
-            buttons.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    private void initializeButtons() {
+        for (JButton button : Arrays.asList(menuButton, importButton, visualizerButton)) {
+            button.setPreferredSize(new Dimension(200, 50));
+            button.setForeground(Color.WHITE);
+            button.setBackground(new Color(255, 255, 255, 100));
+            button.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             Font newFont = customFont.deriveFont(16.0f);
-            buttons.setFont(newFont);
-
+            button.setFont(newFont);
         }
     }
+
 }
