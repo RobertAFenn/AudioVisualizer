@@ -6,5 +6,7 @@
     ],
     "cSpell.words": [
         "Ultrakill's"
-    ]
+    ],
+    "C_Cpp.intelliSenseEngineFallback": "enabled",
+    "java.debug.settings.onBuildFailureProceed": true
 }

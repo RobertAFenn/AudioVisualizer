@@ -1,6 +1,5 @@
 import java.nio.file.Path;
-
-public interface IAudioVisualizer { // Extend JComponent
+public interface IAudioVisualizer { // ? Extend JComponent
 
     /*
      * Should use variables such as
@@ -14,12 +13,13 @@ public interface IAudioVisualizer { // Extend JComponent
     /*
      * Draw the data to the graph, humans can only hear up to 20k in frequencies, so
      * thats where most computers output
-     * since we have 20k per frequency, we should subdivide it into 100 different
-     * bars, of course considering a machines performance
+     * since we have 20k frequency's, different bars, of course considering a
+     * machines performance, lower bars more performance
      * Divide the frequencies up into different categories (by 200 to get the 100
      * bars), because creating a new bar for every single frequency doesn't seem
      * possible without the use of a gpu, and is somewhat unneeded for this project
      */
+
     public void createVisualizerPanel(int[] frequencies, int[] decibels, int frequencySplit);
 
     /*

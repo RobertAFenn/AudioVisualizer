@@ -52,7 +52,7 @@ public class Frame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
         setResizable(false);
-        setParticleCount(3000);
+        setParticleCount(500);
         addParticles();
 
         // Initialize overlayPanel, for adding interactions and visualizations
@@ -60,10 +60,9 @@ public class Frame extends JFrame {
         starPanel.add(overlayPanel);
         overlayPanel.setOpaque(false);
 
-       new FrameMenuLogic(overlayPanel);
+        new FrameMenuLogic(overlayPanel);
 
     }
-
 
     public void justGiveMeTheParticles(int w, int h) {
         Image iconImage = Toolkit.getDefaultToolkit().getImage("icons8-music-100.png");
