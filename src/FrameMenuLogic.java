@@ -76,15 +76,14 @@ public class FrameMenuLogic implements ActionListener {
                 gbc.gridy = 1;
                 gbc.anchor = GridBagConstraints.CENTER;
                 currentPanel.add(menuButton, gbc);
-
+                LinkedListBag<String> mySongs = new LinkedListBag<String>(100);
                 Path directory = Path.of("music");
                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
                     for (Path file : stream) {
                         if (Files.isRegularFile(file)) {
 
-                            System.out.println(file.getFileName());
+                            mySongs.add(file.getFileName().toString());
                             JButton mySongButton = new JButton(file.getFileName().toString());
-
                             mySongButton.addActionListener(this);
 
                         }
@@ -92,6 +91,8 @@ public class FrameMenuLogic implements ActionListener {
                 } catch (IOException err) {
                     err.printStackTrace();
                 }
+                System.out.println("The Following has been printed using a LinkedListBag");
+                mySongs.printAllItems();
                 initializeButtons();
 
                 break;
