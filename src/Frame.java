@@ -52,7 +52,7 @@ public class Frame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
         setResizable(false);
-        setParticleCount(500);
+        setParticleCount(1000);
         addParticles();
 
         // Initialize overlayPanel, for adding interactions and visualizations

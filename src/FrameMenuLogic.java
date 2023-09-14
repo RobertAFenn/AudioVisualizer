@@ -8,26 +8,48 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.Mixer;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
 
 public class FrameMenuLogic implements ActionListener {
 
-    public JButton menuButton, importButton, visualizerButton;
+    private JButton menuButton, importButton, visualizerButton, libraryButton, mySongButton;
+    private ArrayList<JButton> myButtons = new ArrayList<JButton>();
     private JPanel currentPanel;
     private JLabel topText;
     private Font customFont;
     private JLabel alertLabel;
+    private LinkedListBag<Path> songPaths = new LinkedListBag<Path>(999);
 
     private GridBagConstraints gbc;
 
     FrameMenuLogic(JPanel panel) {
+
         currentPanel = panel;
         menuButton = new JButton("Return To Menu");
         visualizerButton = new JButton("Select Items");
         importButton = new JButton("Import New Files");
+        libraryButton = new JButton("Load Library");
+
         menuButton.addActionListener(this);
         importButton.addActionListener(this);
         visualizerButton.addActionListener(this);
+        libraryButton.addActionListener(this);
+        JButton[] Buttons = { menuButton, importButton, visualizerButton, libraryButton };
+
+        for (int i = 0; i < Buttons.length; i++) {
+            JButton button = Buttons[i];
+            myButtons.add(button);
+        }
 
         loadCustomFont();
 
@@ -63,6 +85,39 @@ public class FrameMenuLogic implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         JButton myButton = (JButton) e.getSource();
         String buttonText = myButton.getText();
+        System.out.println(buttonText);
+        if (buttonText.contains(".")) {
+            topText.setText(buttonText);
+
+            try {
+                Path newPath = null;
+                for (int i = 0; i < songPaths.getCurrentSize(); i++) {
+                    if (songPaths.get(i).toString().contains(buttonText)) {
+                        System.out.println("Path Found");
+                        newPath = songPaths.get(i);
+                        i = songPaths.getCurrentSize(); // You can break out of the loop since you found the path.
+                    } else {
+                        System.out.println("No path found");
+                    }
+                }
+
+                if (newPath != null) {
+
+                    System.out.println("Imagine Music Being Playing Here...");
+
+                } else {
+                    System.out.println("No valid path found for audio file.");
+                }
+            } catch (Exception exp) {
+                exp.printStackTrace();
+                System.out.println("Error playing audio: " + exp.getMessage());
+            }
+
+            // Update the UI here within the EDT if you're working with a GUI
+
+        } else {
+            topText.setText("Audio Visualizer");
+        }
 
         switch (buttonText) {
             case "Return To Menu":
@@ -72,28 +127,19 @@ public class FrameMenuLogic implements ActionListener {
 
             case "Select Items":
                 removeAllButTopLabel();
-                gbc.insets = new Insets(-20, 0, 0, 0);
-                gbc.gridy = 1;
-                gbc.anchor = GridBagConstraints.CENTER;
-                currentPanel.add(menuButton, gbc);
-
-                Path directory = Path.of("music");
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
-                    for (Path file : stream) {
-                        if (Files.isRegularFile(file)) {
-
-                            System.out.println(file.getFileName());
-                            JButton mySongButton = new JButton(file.getFileName().toString());
-
-                            mySongButton.addActionListener(this);
-
-                        }
-                    }
-                } catch (IOException err) {
-                    err.printStackTrace();
-                }
                 initializeButtons();
 
+                // Create a new GridBagConstraints for libraryButton
+                gbc.insets = new Insets(-10, 0, 0, 0);
+                gbc.fill = GridBagConstraints.NONE;
+                gbc.gridx = 0; // Place menuButton in column 0
+                gbc.gridy = 1;
+                gbc.weightx = 1; // Make menuButton span the entire space
+                gbc.anchor = GridBagConstraints.CENTER;
+                currentPanel.add(menuButton, gbc);
+                gbc.gridy = 2;
+                currentPanel.add(libraryButton, gbc);
+                gbc.insets = new Insets(10, 0, 0, 0);
                 break;
 
             case "Import New Files":
@@ -113,10 +159,9 @@ public class FrameMenuLogic implements ActionListener {
                         // Assuming you have a Font object called customFont
                         Font newFont = customFont.deriveFont(15.0f); // Set the font size (16.0f in this example)
                         alertLabel.setFont(newFont); // Set the new font for your component
-
                     }
                 } catch (Exception exception) {
-                    // TODO: handle exception
+                    System.out.println(exception.getMessage());
                 }
 
                 if (result == JFileChooser.APPROVE_OPTION) {
@@ -124,7 +169,6 @@ public class FrameMenuLogic implements ActionListener {
                     File selectedFile = fileChooser.getSelectedFile();
                     String filePath = selectedFile.getAbsolutePath();
                     System.out.println("Selected File: " + filePath);
-                    // Specify the destination directory
                     Path destinationDirectory = Paths.get("music"); // Adjust the destination directory as needed
                     gbc.insets = new Insets(0, 0, 0, 0); // Set the insets
 
@@ -169,6 +213,73 @@ public class FrameMenuLogic implements ActionListener {
 
                 break;
 
+            case "Load Library":
+                JFrame musicSelection = new JFrame("Selection");
+                musicSelection.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+                Path directory = Path.of("music");
+
+                JPanel musicPanel = new JPanel();
+                musicPanel.setLayout(new BoxLayout(musicPanel, BoxLayout.Y_AXIS)); // Stack elements vertically
+
+                ScrollPane musicScrollPane = new ScrollPane();
+                musicScrollPane.add(musicPanel);
+                musicSelection.add(musicScrollPane); // Add ScrollPane to the frame
+
+                // Calculate the frame size based on the number of buttons
+                int frameWidth = 300;
+                int frameHeight = 400; // Adjust the height based on button size
+                musicSelection.setSize(frameWidth, frameHeight);
+
+                Font smallerFont = customFont.deriveFont(10.0f); // Smaller font
+                FontMetrics fm = musicPanel.getFontMetrics(smallerFont);
+
+                // Find the maximum button width based on text length
+
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+                    for (Path file : stream) {
+                        if (Files.isRegularFile(file)) {
+
+                            if (!songPaths.contains(file)) {
+                                songPaths.add(file);
+                            }
+                            mySongButton = new JButton(file.getFileName().toString());
+                            mySongButton.addActionListener(this);
+                            mySongButton.setFont(smallerFont);
+                            mySongButton.setVerticalAlignment(SwingConstants.CENTER); // Center text vertically
+                            mySongButton.setBackground(Color.BLACK);
+                            mySongButton.setForeground(Color.WHITE);
+                            mySongButton.setBorder(BorderFactory.createLineBorder(Color.WHITE)); // Add a border
+                            musicPanel.add(mySongButton);
+                            // Update the maximum button width
+
+                        }
+                    }
+                } catch (IOException err) {
+                    err.printStackTrace();
+                }
+                System.out.println("Printing song's to terminal...");
+                songPaths.printAllItems();
+
+                // Set the same fixed size for all buttons based on the maximum button width
+                Dimension buttonSize = new Dimension(280, 50);
+                for (Component component : musicPanel.getComponents()) {
+                    if (component instanceof JButton) {
+                        JButton button = (JButton) component;
+                        button.setPreferredSize(buttonSize);
+                        button.setMaximumSize(buttonSize);
+                        button.setMinimumSize(buttonSize);
+                    }
+                }
+
+                // Center the musicScrollPane within the frame
+                musicSelection.add(musicScrollPane, BorderLayout.CENTER);
+
+                musicSelection.setBackground(Color.BLACK);
+                musicSelection.setVisible(true);
+                musicPanel.setBackground(Color.BLACK);
+                musicSelection.setResizable(false);
+                break;
+
             default:
                 break;
         }
@@ -179,9 +290,9 @@ public class FrameMenuLogic implements ActionListener {
         topText = new JLabel("Audio Visualizer");
         topText.setFont(customFont);
         topText.setForeground(Color.RED);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.NORTH;
+        gbc.gridx = 0; // Center horizontally
+        gbc.gridy = 0; // Center vertically
+        gbc.anchor = GridBagConstraints.CENTER;
         currentPanel.add(topText, gbc);
 
         addComponentWithConstraints(visualizerButton, 1, GridBagConstraints.CENTER);
@@ -209,7 +320,10 @@ public class FrameMenuLogic implements ActionListener {
     }
 
     private void initializeButtons() {
-        for (JButton button : Arrays.asList(menuButton, importButton, visualizerButton)) {
+        for (int i = 0; i < myButtons.size(); i++) {
+
+            JButton button = myButtons.get(i);
+            System.out.println(button.getText());
             button.setPreferredSize(new Dimension(200, 50));
             button.setForeground(Color.WHITE);
             button.setBackground(new Color(0, 0, 0, 0));
