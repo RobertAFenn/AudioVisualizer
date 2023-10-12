@@ -1,4 +1,9 @@
 public class driver3 {
+
+    /*
+     * Testing Deque, this for the most part the driver from the book im using with
+     * a few small changes
+     */
     public static void main(String args[]) {
         String name;
         Deque<String> myDeque = new Deque<String>();
