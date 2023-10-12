@@ -1,12 +1,55 @@
 {
-    "java.project.sourcePaths": ["src"],
-    "java.project.outputPath": "bin",
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar"
+    "explorer.confirmDelete": false,
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java"
+    },
+    "hediet.vscode-drawio.resizeImages": null,
+    "workbench.iconTheme": "icons",
+    "cSpell.userWords": [
+        "Fenn",
+        "Ruan"
     ],
-    "cSpell.words": [
-        "Ultrakill's"
+    "explorer.confirmDragAndDrop": false,
+    "terminal.integrated.enableMultiLinePasteWarning": false,
+    "[python]": {
+        "editor.formatOnType": true
+    },
+    "errorLens.excludeBySource": [
+        "Java(536871800)"
     ],
-    "C_Cpp.intelliSenseEngineFallback": "enabled",
-    "java.debug.settings.onBuildFailureProceed": true
+    "workbench.colorTheme": "Theme Flat",
+    "C_Cpp.default.compilerPath": "/usr/bin/clang",
+    "cmake.configureOnOpen": true,
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "liveServer.settings.donotShowInfoMsg": true,
+    "code-runner.runInTerminal": true,
+    "code-runner.saveFileBeforeRun": true,
+    "tabnine.experimentalAutoImports": true,
+    "clangd.detectExtensionConflicts": false,
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    "code-runner.saveAllFilesBeforeRun": true,
+    "git.confirmSync": false,
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
+            "default": true,
+            "options": [
+                "-XX:ReservedCodeCacheSize=256m"
+            ]
+        },
+        {
+            "name": "JavaSE-20",
+            "path": "/Library/Java/JavaVirtualMachines/jdk-20.jdk/Contents/Home",
+            "options": [
+                "-XX:ReservedCodeCacheSize=256m"
+            ]
+        }
+    ],
+    "java.project.sourcePaths": [
+        "src"
+    ]
 }

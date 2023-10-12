@@ -1,3 +1,5 @@
+
+
 public class LinkedListBag<T> implements BagInterface<T> {
     private Node<T> head;
     private int numberOfEntries = 0;

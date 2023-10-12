@@ -10,7 +10,6 @@ import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -34,7 +33,7 @@ public class Frame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
         setResizable(false);
-        setParticleCount(1000);
+        setParticleCount(300);
         addParticles();
 
         // Initialize overlayPanel, for adding interactions and visualizations

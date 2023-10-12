@@ -1,4 +1,5 @@
 
+
 public interface BagInterface<T> {
 
 	public int getCurrentSize();
