@@ -214,8 +214,6 @@ public class FrameMenuLogic implements ActionListener {
             case "Report a bug":
                 new BugReportWindow(bugReportDeque);
 
-              
-
                 break;
 
             case "Load Library":

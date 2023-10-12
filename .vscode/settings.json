@@ -50,6 +50,11 @@
         }
     ],
     "java.project.sourcePaths": [
-        "src"
-    ]
+        "src",
+        "javafx-sdk-21"
+    ],
+    "cSpell.words": [
+        "Azusa"
+    ],
+
 }
